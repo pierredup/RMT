@@ -100,13 +100,13 @@ class InitCommand extends BaseCommand
     protected function execute(InputInterface $input, OutputInterface $output)
     {
         // Create the executable task inside the project home
-        $this->getOutput()->writeln("Creation of the new executable <info>{$this->executablePath}</info>");
+        /*$this->getOutput()->writeln("Creation of the new executable <info>{$this->executablePath}</info>");
         file_put_contents($this->executablePath,
             "#!/usr/bin/env php\n".
             "<?php define('RMT_ROOT_DIR', __DIR__); ?>\n".
             "<?php require '{$this->commandPath}'; ?>\n"
         );
-        exec('chmod +x RMT');
+        exec('chmod +x RMT');*/
 
         // Create the config file
         $this->getOutput()->writeln("Creation of the config file <info>{$this->configPath}</info>");

@@ -1,0 +1,15 @@
+#!/usr/bin/env php
+<?php
+
+define('RMT_ROOT_DIR', dirname(__DIR__));
+
+require_once dirname(__DIR__).'/autoload.php';
+
+use Liip\RMT\Compiler\Compile;
+
+$compiler = new Compile();
+
+$compiler->compile(RMT_ROOT_DIR);
+
+
+
