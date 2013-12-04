@@ -4,7 +4,7 @@ namespace Liip\RMT\VCS;
 
 class Git extends BaseVCS
 {
-/*
+    /*
     public function checkStatus(){
         $this->gitExec('fetch origin');
         $statLines = $this->gitExec('status', true);
@@ -22,7 +22,7 @@ class Git extends BaseVCS
             throw new \Exception('Your working directory must be clean to generate a new version. Please commit or stash your change and push everything to origin');
         }
     }
-*/
+    */
     protected $dryRun = false;
 
 
@@ -42,7 +42,8 @@ class Git extends BaseVCS
         return $files;
     }
 
-    public function getLocalModifications(){
+    public function getLocalModifications()
+    {
         return $this->executeGitCommand('status -s');
     }
 
@@ -57,14 +58,16 @@ class Git extends BaseVCS
         return $this->executeGitCommand("tag $tagName");
     }
 
-    public function publishTag($tagName)
+    public function publishTag($tagName, $remote = null)
     {
-        $this->executeGitCommand("push origin $tagName");
+        $remote = $remote==null ? 'origin' : $remote;
+        $this->executeGitCommand("push $remote $tagName");
     }
 
-    public function publishChanges()
+    public function publishChanges($remote = null)
     {
-        $this->executeGitCommand("push origin ".$this->getCurrentBranch());
+        $remote = $remote===null ? 'origin' : $remote;
+        $this->executeGitCommand("push $remote ".$this->getCurrentBranch());
     }
 
     public function saveWorkingCopy($commitMsg='')
@@ -77,7 +80,7 @@ class Git extends BaseVCS
     {
         $branches = $this->executeGitCommand('branch');
         foreach ($branches as $branch){
-            if (strpos($branch, '* ') === 0 && $branch !== '* (no branch)'){
+            if (strpos($branch, '* ') === 0 && !preg_match('/^\*\s\(.*\)$/', $branch)){
                 return substr($branch,2);
             }
         }
@@ -100,9 +103,8 @@ class Git extends BaseVCS
         $cmd = 'git '.$cmd;
         exec($cmd, $result, $exitCode);
         if ($exitCode !== 0){
-            throw new \Liip\RMT\Exception('Error while executing git command: '.$cmd);
+            throw new \Liip\RMT\Exception('Error while executing git command: '.$cmd . "\n" . implode("\n", $result));
         }
         return $result;
     }
 }
-

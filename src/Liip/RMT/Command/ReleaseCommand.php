@@ -16,6 +16,9 @@ use Liip\RMT\Context;
  */
 class ReleaseCommand extends BaseCommand
 {
+    /**
+     * @inheritdoc
+     */
     protected function configure()
     {
         $this->setName('release');
@@ -47,8 +50,12 @@ class ReleaseCommand extends BaseCommand
                 ))
             );
         }
+        catch (\Exception $e) {
+            echo "Error while trying to read the current version";
+        }
 
-        // Register options of the release tasks
+
+            // Register options of the release tasks
         $ic->registerRequests(Context::get('version-generator')->getInformationRequests());
         $ic->registerRequests(Context::get('version-persister')->getInformationRequests());
 
@@ -62,34 +69,51 @@ class ReleaseCommand extends BaseCommand
         Context::getInstance()->setService('information-collector', $ic);
     }
 
-    // Always executed
+    /**
+     * Always executed
+     *
+     * @inheritdoc
+     */
     protected function initialize(InputInterface $input, OutputInterface $output)
     {
-        Context::getInstance()->setService('output', $this->output);
+        parent::initialize($input, $output);
+
         Context::get('information-collector')->handleCommandInput($input);
 
-        $this->writeBigTitle('Welcome to Release Management Tool');
+        $this->getOutput()->writeBigTitle('Welcome to Release Management Tool');
 
         $this->executeActionListIfExist('prerequisites');
     }
 
-    // Executed only when we are in interactive mode
+    /**
+     * Executed only when we are in interactive mode
+     *
+     * @inheritdoc
+     */
     protected function interact(InputInterface $input, OutputInterface $output)
     {
+        parent::interact($input, $output);
+
         // Fill up questions
         if (Context::get('information-collector')->hasMissingInformation()){
-            $this->writeSmallTitle('Information collect');
+            $questions = Context::get('information-collector')->getInteractiveQuestions();
+            $this->getOutput()->writeSmallTitle('Information collect ('.count($questions).' questions)');
             $this->getOutput()->indent();
-            foreach(Context::get('information-collector')->getInteractiveQuestions() as $name => $question) {
-                $answer = $this->askQuestion($question);
+            $count = 1;
+            foreach($questions as $name => $question) {
+                $answer = $this->getOutput()->askQuestion($question, $count++);
                 Context::get('information-collector')->setValueFor($name, $answer);
-                $this->writeEmptyLine();
+                $this->getOutput()->writeEmptyLine();
             }
             $this->getOutput()->unIndent();
         }
     }
 
-    // Always executed, but first initialize and interact have already been called
+    /**
+     * Always executed, but first initialize and interact have already been called
+     *
+     * @inheritdoc
+     */
     protected function execute(InputInterface $input, OutputInterface $output)
     {
         // Get the current version or generate a new one if the user has confirm that this is required
@@ -112,7 +136,7 @@ class ReleaseCommand extends BaseCommand
 
         $this->executeActionListIfExist('pre-release-actions');
 
-        $this->writeSmallTitle('Release process');
+        $this->getOutput()->writeSmallTitle('Release process');
         $this->getOutput()->indent();
 
         $this->getOutput()->writeln("A new version named [<yellow>$newVersion</yellow>] is going to be released");
@@ -128,13 +152,13 @@ class ReleaseCommand extends BaseCommand
     {
         $actions = Context::getInstance()->getList($name);
         if (count($actions) > 0) {
-            $this->writeSmallTitle($title ?: ucfirst($name));
+            $this->getOutput()->writeSmallTitle($title ?: ucfirst($name));
             $this->getOutput()->indent();
             foreach ($actions as $num => $action){
-                $this->write($num++.") ".$action->getTitle().' : ');
+                $this->getOutput()->write(++$num.") ".$action->getTitle().' : ');
                 $this->getOutput()->indent();
                 $action->execute();
-                $this->writeEmptyLine();
+                $this->getOutput()->writeEmptyLine();
                 $this->getOutput()->unIndent();
             }
             $this->getOutput()->unIndent();

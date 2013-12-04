@@ -9,13 +9,13 @@ class DisplayLastChanges extends BaseAction
 {
     public function getTitle()
     {
-        return "Here is the list of changes you are going to released";
+        return "Here is the list of changes you are going to release";
     }
 
     public function execute()
     {
         try {
-            Context::get('output')->writeln('');
+            Context::get('output')->writeEmptyLine();
             Context::get('output')->writeln(
                 Context::get('vcs')->getAllModificationsSince(
                     Context::get('version-persister')->getCurrentVersionTag()

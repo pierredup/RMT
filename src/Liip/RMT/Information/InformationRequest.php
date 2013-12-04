@@ -20,7 +20,8 @@ class InformationRequest
         'interactive' => true,
         'default' => null,
         'interactive_help' => '',
-        'interactive_help_shortcut' => 'h'
+        'interactive_help_shortcut' => 'h',
+        'hidden_answer' => false,
     );
 
     protected $name;
@@ -52,7 +53,8 @@ class InformationRequest
         }
     }
 
-    public function getName(){
+    public function getName()
+    {
         return $this->name;
     }
 
@@ -71,17 +73,19 @@ class InformationRequest
         return $this->options['interactive'];
     }
 
-    public function convertToCommandOption() {
+    public function convertToCommandOption()
+    {
         return new InputOption(
             $this->name,
             $this->options['command_shortcut'],
             $this->options['type']=='boolean' || $this->options['type']=='confirmation' ? InputOption::VALUE_NONE : InputOption::VALUE_REQUIRED,
             $this->options['description'],
-            $this->options['type']!=='confirmation' ? $this->options['default'] : null
+            (!$this->isAvailableForInteractive() && $this->getOption('type')!=='confirmation') ? $this->options['default'] : null
         );
     }
 
-    public function convertToInteractiveQuestion() {
+    public function convertToInteractiveQuestion()
+    {
         $questionOptions = array();
         foreach (array('choices', 'choices_shortcuts', 'interactive_help', 'interactive_help_shortcut') as $optionName){
             $questionOptions[$optionName] = $this->options[$optionName];
@@ -109,18 +113,12 @@ class InformationRequest
         if ($this->options['type'] == 'choice' && !in_array($value, $this->options['choices'])) {
             throw new \InvalidArgumentException('Must be on of '.json_encode($this->options['choices']));
         }
-        if ($this->options['type'] == 'text') {
-            if (!is_string($value) || strlen($value) < 1) {
-                throw new \InvalidArgumentException('Text must be provided');
-            }
+        if ($this->options['type'] == 'text' && (!is_string($value) || strlen($value) < 1)) {
+            throw new \InvalidArgumentException('Text must be provided');
         }
         if ($this->options['type'] == 'yes-no') {
-            if ($value === 'yes'){
-                $value = 'y';
-            }
-            if ($value === 'no'){
-                $value = 'n';
-            }
+            // take only the first character
+            $value = lcfirst($value[0]);
             if ($value !== 'y' && $value !== 'n' ){
                 throw new \InvalidArgumentException('Value should be [y] or [n]');
             }
@@ -131,7 +129,7 @@ class InformationRequest
     public function getValue()
     {
         if ( !$this->hasValue() && $this->options['default'] === null ){
-            throw new \Liip\RMT\Exception("No value available");
+            throw new \Liip\RMT\Exception("No value [{$this->name}] available");
         }
 
         return $this->hasValue() ? $this->value : $this->options['default'];

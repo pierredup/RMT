@@ -78,7 +78,7 @@ class InformationCollector
 
     public function hasRequest($name)
     {
-        return isset($this->requests[$name]);
+        return array_key_exists($name, $this->requests);
     }
 
     /**
@@ -120,18 +120,25 @@ class InformationCollector
 
     public function handleCommandInput(InputInterface $input)
     {
-        foreach ($input->getOptions() as $name => $value){
-            if ($this->hasRequest($name) && $this->getRequest($name)->getOption('default') !== $value){
+        foreach ($input->getOptions() as $name => $value) {
+            if ($this->hasRequest($name) && ($value !== null && $value !== false)){
                 $this->getRequest($name)->setValue($value);
             }
         }
     }
 
-    public function setValueFor($requestName, $value){
+    public function setValueFor($requestName, $value)
+    {
         return $this->getRequest($requestName)->setValue($value);
     }
 
-    public function getValueFor($requestName, $default = null){
+    public function hasValueFor($requestName)
+    {
+        return $this->getRequest($requestName)->hasValue();
+    }
+
+    public function getValueFor($requestName, $default = null)
+    {
         if ($this->hasRequest($requestName)){
             return $this->getRequest($requestName)->getValue();
         }

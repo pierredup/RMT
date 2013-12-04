@@ -8,7 +8,7 @@ class ChangelogTest extends RMTFunctionalTestBase
     public function testSimple()
     {
         $this->createChangelog('simple');
-        $this->createJsonConfig("simple", "changelog");
+        $this->createConfig("simple", "changelog");
         $this->executeTest(null, 'comment1', '1');
         $this->executeTest(null, 'comment2', '2');
     }
@@ -16,7 +16,7 @@ class ChangelogTest extends RMTFunctionalTestBase
     public function testSemantic()
     {
         $this->createChangelog('semantic');
-        $this->createJsonConfig("semantic", "changelog");
+        $this->createConfig("semantic", "changelog");
         $this->executeTest('major', 'First major', '1.0.0');
         $this->executeTest('patch', 'First patch', '1.0.1');
         $this->executeTest('minor', 'First minor', '1.1.0');
@@ -27,7 +27,6 @@ class ChangelogTest extends RMTFunctionalTestBase
     protected function createChangelog($format)
     {
         $file = $this->tempDir.'/CHANGELOG';
-        touch($file);
         $manager = new \Liip\RMT\Changelog\ChangelogManager($file, $format);
         $manager->update(
             $format=='semantic' ? '0.0.1' : '1',

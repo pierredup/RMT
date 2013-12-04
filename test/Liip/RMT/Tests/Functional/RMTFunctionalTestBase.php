@@ -2,6 +2,8 @@
 
 namespace Liip\RMT\Tests\Functional;
 
+use Symfony\Component\Yaml\Yaml;
+
 class RMTFunctionalTestBase extends \PHPUnit_Framework_TestCase
 {
     protected $tempDir;
@@ -21,12 +23,12 @@ class RMTFunctionalTestBase extends \PHPUnit_Framework_TestCase
         exec("php $rmtDir/command.php init --generator=basic-increment --persister=vcs-tag --vcs=git");
     }
 
-    protected function createJsonConfig($generator, $persister, $otherConfig=array()) {
+    protected function createConfig($generator, $persister, $otherConfig=array()) {
         $allConfig = array_merge($otherConfig, array(
             'version-persister'=>$persister,
             'version-generator'=>$generator
         ));
-        file_put_contents('rmt.json', json_encode($allConfig));
+        file_put_contents('.rmt.yml', Yaml::dump($allConfig));
     }
 
     protected function tearDown()
@@ -37,7 +39,7 @@ class RMTFunctionalTestBase extends \PHPUnit_Framework_TestCase
     protected function initGit()
     {
         exec('git init');
-        exec('git add *');
+        exec('git add .');
         exec('git commit -m "First commit"');
     }
 

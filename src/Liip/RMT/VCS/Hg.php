@@ -13,7 +13,8 @@ class Hg extends BaseVCS
         return $modifications;
     }
 
-    public function getModifiedFilesSince($tag) {
+    public function getModifiedFilesSince($tag)
+    {
         $data = $this->executeHgCommand("status --rev $tag:tip");
         $files = array();
         foreach($data as $d) {
@@ -23,7 +24,8 @@ class Hg extends BaseVCS
         return $files;
     }
 
-    public function getLocalModifications(){
+    public function getLocalModifications()
+    {
         return $this->executeHgCommand('status');
     }
 
@@ -42,14 +44,15 @@ class Hg extends BaseVCS
         return $this->executeHgCommand("tag $tagName");
     }
 
-    public function publishTag($tagName)
+    public function publishTag($tagName, $remote = null)
     {
         // nothing to do, tags are published with other changes
     }
 
-    public function publishChanges()
+    public function publishChanges($remote = null)
     {
-        $this->executeHgCommand("push default");
+        $remote = $remote===null ? 'default' : $remote;
+        $this->executeHgCommand("push $remote");
     }
 
     public function saveWorkingCopy($commitMsg='')
@@ -61,7 +64,7 @@ class Hg extends BaseVCS
     public function getCurrentBranch()
     {
         $data = $this->executeHgCommand('branch');
-	    return $data[0];
+        return $data[0];
     }
 
     protected function executeHgCommand($cmd)

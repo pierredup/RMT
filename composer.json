@@ -1,6 +1,6 @@
 {
     "name": "liip/rmt",
-    "version": "0.9.5",
+    "version": "0.9.15",
     "description": "Release Managment Tool",
     "keywords": ["release", "version", "semantic versioning", "vcs tag"],
     "homepage": "http://github.com/liip/RMT",
@@ -20,7 +20,9 @@
     ],
     "require": {
         "php": ">=5.3.3",
-        "symfony/console": "2.0.*"
+        "symfony/console": "~2.0",
+        "symfony/yaml": "~2.0",
+        "symfony/process": "~2.0"
     },
     "autoload": {
         "psr-0": {

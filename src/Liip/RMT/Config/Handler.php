@@ -50,7 +50,7 @@ class Handler
         $config = array_merge($defaultConfig, $this->rawConfig);
         if (isset($branchName) && isset($config['branch-specific'][$branchName])) {
             $envSpecific = $config['branch-specific'][$branchName];
-            $config = array_merge($config, $envSpecific);
+            $config = array_replace_recursive($config, $envSpecific);
         }
         unset($config['branch-specific']);
 
@@ -65,18 +65,29 @@ class Handler
         // Validate the config entry
         $this->validateRootElements($config);
 
-        // Normalize all class name and options, remove null entry
+        // For single value elements, normalize all class name and options, remove null entry
         foreach (array("vcs", "version-generator", "version-persister") as $configKey){
-            if ($config[$configKey] == null){
+            $value = $config[$configKey];
+            if ($value == null){
                 unset($config[$configKey]);
+                continue;
             }
-            else {
-                $config[$configKey] = $this->getClassAndOptions($config[$configKey], $configKey);
-            }
+            $config[$configKey] = $this->getClassAndOptions($value, $configKey);
         }
+
+        // Same process but for list value elements
         foreach (array("prerequisites", "pre-release-actions", "post-release-actions") as $configKey){
-            foreach($config[$configKey] as $pos => $item){
-                $config[$configKey][$pos] = $this->getClassAndOptions($config[$configKey][$pos], $configKey.'_'.$pos);
+            foreach($config[$configKey] as $key => $item) {
+
+                // Accept the element to be define by key or by value
+                if (!is_numeric($key)){
+                    if ($item == null) {
+                        $item = array();
+                    }
+                    $item['name'] = $key;
+                }
+
+                $config[$configKey][$key] = $this->getClassAndOptions($item, $configKey.'_'.$key);
             }
         }
 
@@ -109,13 +120,21 @@ class Handler
             $options = array();
         }
         else if ( is_array($rawConfig)){
-            if (isset($rawConfig['name'])){
-                $class = $this->findClass($rawConfig['name'], $sectionName);
-                unset($rawConfig['name']);
+
+            // Handling Yml corner case (see https://github.com/liip/RMT/issues/54)
+            if (count($rawConfig)==1 && key($rawConfig) !== 'name') {
+                $name = key($rawConfig);
+                $rawConfig = is_array(reset($rawConfig)) ? reset($rawConfig) : array();
+                $rawConfig['name'] = $name;
             }
-            else {
+
+            if (!isset($rawConfig['name'])){
                 throw new Exception("Missing information for [$sectionName], you must provide a [name] value");
             }
+
+            $class = $this->findClass($rawConfig['name'], $sectionName);
+            unset($rawConfig['name']);
+
             $options = $rawConfig;
         }
         else {

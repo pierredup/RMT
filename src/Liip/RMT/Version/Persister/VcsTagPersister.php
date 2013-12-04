@@ -9,15 +9,21 @@ class VcsTagPersister implements PersisterInterface
 {
     protected $versionRegex;
     protected $vcs;
-    protected $prefix;
+    protected $options;
 
     public function __construct($options = array())
     {
+        $this->options = $options;
         $this->vcs = Context::get('vcs');
         $this->versionRegex = Context::get('version-generator')->getValidationRegex();
-        $this->prefix = $this->generatePrefix(isset($options['tag-prefix']) ? $options['tag-prefix'] : '');
+        if (isset($options['tag-pattern'])) {
+            $this->versionRegex = $options['tag-pattern'];
+        }
     }
 
+    /**
+     * @inheritdoc
+     */
     public function getCurrentVersion()
     {
         $tags = $this->getValidVersionTags($this->versionRegex);
@@ -51,7 +57,7 @@ class VcsTagPersister implements PersisterInterface
 
     public function getTagPrefix()
     {
-        return $this->prefix;
+        return $this->generatePrefix(isset($this->options['tag-prefix']) ? $this->options['tag-prefix'] : '');
     }
 
     public function getTagFromVersion($versionName)
@@ -89,7 +95,8 @@ class VcsTagPersister implements PersisterInterface
         return $validator->filtrateList($this->vcs->getTags());
     }
 
-    protected function generatePrefix($userTag){
+    protected function generatePrefix($userTag)
+    {
         preg_match_all('/\{([^\}]*)\}/', $userTag, $placeHolders);
         foreach ($placeHolders[1] as $pos => $placeHolder){
             if ($placeHolder == 'branch-name'){
